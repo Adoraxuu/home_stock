@@ -1,0 +1,27 @@
+<div class="text-center space-y-2">
+  <%- if controller_name != 'sessions' %>
+    <%= link_to "登入", new_session_path(resource_name), class: "text-blue-500 hover:text-blue-800" %>
+  <% end %>
+
+  <%- if devise_mapping.registerable? && controller_name != 'registrations' %>
+    <%= link_to "註冊", new_registration_path(resource_name), class: "text-blue-500 hover:text-blue-800" %>
+  <% end %>
+
+  <%- if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
+    <div><%= link_to "忘記密碼？", new_password_path(resource_name), class: "text-sm text-blue-500 hover:text-blue-800" %></div>
+  <% end %>
+
+  <%- if devise_mapping.confirmable? && controller_name != 'confirmations' %>
+    <div><%= link_to "沒有收到確認信？", new_confirmation_path(resource_name), class: "text-sm text-blue-500 hover:text-blue-800" %></div>
+  <% end %>
+
+  <%- if devise_mapping.lockable? && resource_class.unlock_strategy_enabled?(:email) && controller_name != 'unlocks' %>
+    <div><%= link_to "沒有收到解鎖信？", new_unlock_path(resource_name), class: "text-sm text-blue-500 hover:text-blue-800" %></div>
+  <% end %>
+
+  <%- if devise_mapping.omniauthable? %>
+    <%- resource_class.omniauth_providers.each do |provider| %>
+      <%= button_to "使用 #{OmniAuth::Utils.camelize(provider)} 登入", omniauth_authorize_path(resource_name, provider), data: { turbo: false }, class: "bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded" %>
+    <% end %>
+  <% end %>
+</div>

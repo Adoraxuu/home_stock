@@ -1,0 +1,93 @@
+<div class="max-w-7xl mx-auto">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-4xl font-bold text-gray-900"><%= @family.name %></h1>
+    <div class="space-x-2">
+      <%= link_to "返回列表", families_path, class: "bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded" %>
+      <% if @family.owner?(current_user) %>
+        <%= link_to "編輯", edit_family_path(@family), class: "bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- 庫存管理區域 -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-gray-800">庫存項目</h2>
+          <%= link_to "新增項目", new_family_inventory_item_path(@family), class: "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded" %>
+        </div>
+
+        <% if @inventory_items.any? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">品牌</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">品項</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種類</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">數量</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @inventory_items.each do |item| %>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= item.brand %></td>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= item.name %></td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        <%= item.category %>
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap"><%= item.quantity %> <%= item.unit %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <%= link_to "編輯", edit_family_inventory_item_path(@family, item), class: "text-indigo-600 hover:text-indigo-900" %>
+                      <%= button_to "刪除", family_inventory_item_path(@family, item), method: :delete, data: { turbo_confirm: "確定要刪除此項目嗎？" }, class: "text-red-600 hover:text-red-900" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="text-gray-600 text-center py-8">尚無庫存項目，點擊上方按鈕新增</p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 成員管理區域 -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">家庭成員</h2>
+
+        <div class="space-y-3 mb-6">
+          <% @family_members.each do |member| %>
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <p class="font-semibold"><%= member.user.name %></p>
+                <p class="text-sm text-gray-600"><%= member.user.email %></p>
+                <% if member.role == "owner" %>
+                  <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mt-1">擁有者</span>
+                <% end %>
+              </div>
+              <% if @family.owner?(current_user) && member.role != "owner" %>
+                <%= button_to "移除", family_family_member_path(@family, member), method: :delete, data: { turbo_confirm: "確定要移除此成員嗎？" }, class: "text-red-600 hover:text-red-900 text-sm" %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <% if @family.owner?(current_user) %>
+          <div class="border-t pt-4">
+            <h3 class="font-bold text-gray-800 mb-3">邀請成員</h3>
+            <%= form_with url: family_family_members_path(@family), method: :post, class: "space-y-3" do |form| %>
+              <%= form.email_field :email, placeholder: "輸入成員 email", class: "w-full shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %>
+              <%= form.submit "邀請", class: "w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
