@@ -49,7 +49,14 @@ class FamiliesController < ApplicationController
   private
 
   def set_family
-    @family = Family.find(params[:id])
+    # 只允許存取使用者所屬的家庭，防止 IDOR 攻擊
+    @family = current_user.families.find_by(id: params[:id]) ||
+              current_user.created_families.find_by(id: params[:id])
+
+    unless @family
+      redirect_to families_path, alert: "您沒有權限存取此家庭。"
+      Rails.logger.warn("IDOR attempt: User #{current_user.id} tried to access family #{params[:id]}")
+    end
   end
 
   def authorize_family_access

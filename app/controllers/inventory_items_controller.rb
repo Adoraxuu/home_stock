@@ -6,6 +6,35 @@ class InventoryItemsController < ApplicationController
 
   def index
     @inventory_items = @family.inventory_items.order(created_at: :desc)
+
+    # 搜尋功能
+    if params[:search].present?
+      # 轉義 LIKE 特殊字符，防止 LIKE 注入
+      sanitized_search = sanitize_sql_like(params[:search])
+      search_term = "%#{sanitized_search}%"
+      @inventory_items = @inventory_items.where(
+        "brand ILIKE ? OR name ILIKE ?",
+        search_term, search_term
+      )
+    end
+
+    # 種類篩選
+    if params[:category].present?
+      @inventory_items = @inventory_items.by_category(params[:category])
+    end
+
+    # 品牌篩選
+    if params[:brand].present?
+      @inventory_items = @inventory_items.by_brand(params[:brand])
+    end
+
+    # 取得所有品牌和種類供篩選使用
+    @brands = @family.inventory_items.distinct.pluck(:brand).compact.sort
+    @categories = @family.inventory_items.distinct.pluck(:category).compact.sort
+
+    # 統計資料
+    @low_stock_count = @family.inventory_items.low_stock.count
+    @category_stats = @family.inventory_items.group(:category).count
   end
 
   def new
@@ -41,7 +70,14 @@ class InventoryItemsController < ApplicationController
   private
 
   def set_family
-    @family = Family.find(params[:family_id])
+    # 只允許存取使用者所屬的家庭，防止 IDOR 攻擊
+    @family = current_user.families.find_by(id: params[:family_id]) ||
+              current_user.created_families.find_by(id: params[:family_id])
+
+    unless @family
+      redirect_to families_path, alert: "您沒有權限存取此家庭。"
+      Rails.logger.warn("IDOR attempt: User #{current_user.id} tried to access family #{params[:family_id]}")
+    end
   end
 
   def set_inventory_item

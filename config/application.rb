@@ -38,5 +38,8 @@ module HomeStock
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    # 啟用 Rack::Attack 速率限制
+    config.middleware.use Rack::Attack
   end
 end

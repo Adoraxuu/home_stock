@@ -158,3 +158,5 @@ dump.rdb
 
 # Ignore Solid Queue/Cache/Cable databases
 /db/*_schema.rb
+
+/config/credentials/development.key
