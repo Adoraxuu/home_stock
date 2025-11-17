@@ -17,7 +17,8 @@ Rails.application.configure do
     policy.connect_src :self, :https
     policy.frame_ancestors :none  # 防止被嵌入 iframe (Clickjacking 防護)
     policy.base_uri    :self
-    policy.form_action :self
+    # 允許表單提交到 LINE OAuth (access.line.me)
+    policy.form_action :self, "https://access.line.me"
 
     # 在開發環境中允許更寬鬆的設定
     if Rails.env.development?

@@ -1,6 +1,6 @@
 class OmniauthCallbacksController < ApplicationController
   before_action :authenticate_user!
-  skip_before_action :verify_authenticity_token, only: [:passthru]
+  skip_before_action :verify_authenticity_token, only: [ :passthru ]
 
   def passthru
     # OmniAuth will handle the redirect to LINE
