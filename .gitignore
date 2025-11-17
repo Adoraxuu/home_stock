@@ -157,3 +157,5 @@ dump.rdb
 /db/*_schema.rb
 
 /config/credentials/development.key
+
+/config/credentials/production.key
