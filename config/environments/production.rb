@@ -87,4 +87,8 @@ Rails.application.configure do
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Allow hosts from credentials
+  allowed_host = Rails.application.credentials.dig(:host)
+  config.hosts << allowed_host if allowed_host.present?
 end

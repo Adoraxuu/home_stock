@@ -1,8 +1,8 @@
 module Line
   class MessageParser
     BIND_PATTERN = /^綁定\s+([A-Z0-9]{6})$/
-    ADD_PATTERNS = [/^\+(.+?)\s+(\d+)$/, /^新增\s+(.+?)\s+(\d+)$/]
-    REMOVE_PATTERNS = [/^\-(.+?)\s+(\d+)$/, /^用掉\s+(.+?)\s+(\d+)$/]
+    ADD_PATTERNS = [ /^\+(.+?)\s+(\d+)$/, /^新增\s+(.+?)\s+(\d+)$/ ]
+    REMOVE_PATTERNS = [ /^\-(.+?)\s+(\d+)$/, /^用掉\s+(.+?)\s+(\d+)$/ ]
     SET_PATTERN = /^設\s+(.+?)\s+(\d+)$/
     QUERY_PATTERN = /^查\s+(.+)$/
     LIST_PATTERN = /^庫存$/

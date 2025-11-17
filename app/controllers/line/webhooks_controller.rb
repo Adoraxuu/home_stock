@@ -1,32 +1,37 @@
 module Line
   class WebhooksController < ApplicationController
     skip_before_action :verify_authenticity_token
-    skip_before_action :authenticate_user!
 
     def callback
-      # TODO: 驗證 LINE 簽章
-      # body = request.body.read
-      # signature = request.env['HTTP_X_LINE_SIGNATURE']
-      # unless verify_signature(body, signature)
-      #   return head :bad_request
-      # end
+      body = request.body.read
+      signature = request.env["HTTP_X_LINE_SIGNATURE"]
 
-      events = params[:events] || []
+      # 驗證 LINE 簽章
+      unless verify_signature(body, signature)
+        Rails.logger.warn "Invalid LINE signature"
+        return head :bad_request
+      end
+
+      # 解析事件
+      events = JSON.parse(body)["events"] || []
 
       events.each do |event|
         Line::WebhookProcessor.new(event).process
       end
 
       head :ok
+    rescue JSON::ParserError => e
+      Rails.logger.error "Invalid JSON from LINE webhook: #{e.message}"
+      head :bad_request
     end
 
     private
 
     def verify_signature(body, signature)
-      # TODO: 實作 LINE 簽章驗證
-      # hash = OpenSSL::HMAC.digest(OpenSSL::Digest.new('SHA256'), ENV['LINE_CHANNEL_SECRET'], body)
-      # Base64.strict_encode64(hash) == signature
-      true
+      return true if Rails.env.development? && LINE_CONFIG[:channel_secret].blank?
+
+      line_client = Line::Client.new
+      line_client.validate_signature(body, signature)
     end
   end
 end
