@@ -5,6 +5,14 @@ Rails.application.routes.draw do
   # 首頁
   root "home#index"
 
+  # LINE 綁定
+  resource :binding, only: [ :show, :create, :destroy ]
+
+  # LINE Webhook
+  namespace :line do
+    post "webhook", to: "webhooks#callback"
+  end
+
   # 家庭管理
   resources :families do
     # 家庭成員

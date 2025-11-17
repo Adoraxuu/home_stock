@@ -8,7 +8,13 @@ class User < ApplicationRecord
   has_many :family_members, dependent: :destroy
   has_many :families, through: :family_members
   has_many :created_families, class_name: "Family", foreign_key: "creator_id", dependent: :destroy
+  has_one :line_profile, dependent: :destroy
 
   # 驗證
   validates :name, presence: true
+
+  # 檢查是否已綁定 LINE
+  def line_bound?
+    line_profile.present?
+  end
 end
