@@ -28,6 +28,13 @@ gem "devise"
 # Rate limiting and abuse prevention
 gem "rack-attack"
 
+# LINE Messaging API SDK
+gem "line-bot-api"
+
+# LINE Login with OmniAuth
+gem "omniauth-line"
+gem "omniauth-rails_csrf_protection"
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

@@ -24,6 +24,6 @@ class LineProfile < ApplicationRecord
 
   # 檢查是否已綁定使用者
   def bound?
-    user_id.present?
+    line_user_id.present? && !line_user_id.start_with?("pending_")
   end
 end

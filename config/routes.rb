@@ -8,6 +8,10 @@ Rails.application.routes.draw do
   # LINE 綁定
   resource :binding, only: [ :show, :create, :destroy ]
 
+  # OmniAuth LINE Login callback
+  get "/auth/line/callback", to: "omniauth_callbacks#line"
+  get "/auth/failure", to: "omniauth_callbacks#failure"
+
   # LINE Webhook
   namespace :line do
     post "webhook", to: "webhooks#callback"

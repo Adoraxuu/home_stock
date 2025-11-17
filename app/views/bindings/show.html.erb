@@ -53,22 +53,46 @@
       <h2 class="text-2xl font-semibold mb-4">綁定 LINE 帳號</h2>
       <p class="text-gray-600 mb-6">綁定 LINE 帳號後,就可以透過 LINE Bot 管理家庭庫存了!</p>
 
+      <!-- LINE Login 按鈕 (主要方式) -->
+      <div class="mb-6">
+        <%= form_with url: "/auth/line", method: :post, data: { turbo: false }, class: "w-full" do %>
+          <button type="submit" class="w-full px-6 py-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-lg font-semibold flex items-center justify-center gap-3">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+            </svg>
+            使用 LINE 登入綁定
+          </button>
+        <% end %>
+        <p class="text-sm text-gray-500 mt-2 text-center">點擊後會跳轉到 LINE 授權頁面</p>
+      </div>
+
+      <!-- 分隔線 -->
+      <div class="relative my-6">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">或使用綁定碼</span>
+        </div>
+      </div>
+
+      <!-- 綁定碼方式 (備用) -->
       <% if @line_profile&.bind_token.present? %>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-          <p class="text-gray-700 mb-4">請在 LINE 傳送以下訊息:</p>
-          <div class="text-4xl font-bold text-blue-600 mb-2 tracking-wider">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <p class="text-sm text-gray-700 mb-3">在 LINE Bot 傳送以下訊息:</p>
+          <div class="text-2xl font-bold text-blue-600 mb-2 tracking-wider">
             綁定 <%= @line_profile.bind_token %>
           </div>
-          <p class="text-sm text-gray-500 mt-4">
-            綁定碼有效期限: <%= l(@line_profile.bind_token_expires_at, format: :short) %>
+          <p class="text-xs text-gray-500 mt-3">
+            有效期限: <%= l(@line_profile.bind_token_expires_at, format: :short) %>
           </p>
 
           <%= button_to "重新產生綁定碼", binding_path, method: :post,
-              class: "mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" %>
+              class: "mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm" %>
         </div>
       <% else %>
         <%= button_to "產生綁定碼", binding_path, method: :post,
-            class: "w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-lg font-semibold" %>
+            class: "w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" %>
       <% end %>
     </div>
 
@@ -76,11 +100,11 @@
     <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
       <h3 class="text-xl font-semibold mb-4">綁定步驟</h3>
       <ol class="space-y-3 list-decimal list-inside text-gray-700">
-        <li>點擊「產生綁定碼」按鈕</li>
-        <li>在 LINE 中加入「Home Stock Bot」為好友</li>
-        <li>在 LINE 傳送「綁定 [綁定碼]」</li>
+        <li>點擊「使用 LINE 登入綁定」按鈕</li>
+        <li>在彈出的 LINE 登入頁面授權</li>
         <li>完成綁定!</li>
       </ol>
+      <p class="text-sm text-gray-500 mt-4">* 也可以使用綁定碼在 LINE Bot 中手動綁定</p>
     </div>
   <% end %>
 </div>

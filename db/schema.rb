@@ -45,6 +45,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_03_030604) do
     t.index ["family_id"], name: "index_inventory_items_on_family_id"
   end
 
+  create_table "line_profiles", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "line_user_id", null: false
+    t.string "display_name"
+    t.string "picture_url"
+    t.text "status_message"
+    t.string "bind_token"
+    t.datetime "bind_token_expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bind_token"], name: "index_line_profiles_on_bind_token", unique: true
+    t.index ["line_user_id"], name: "index_line_profiles_on_line_user_id", unique: true
+    t.index ["user_id"], name: "index_line_profiles_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -62,4 +77,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_03_030604) do
   add_foreign_key "family_members", "families"
   add_foreign_key "family_members", "users"
   add_foreign_key "inventory_items", "families"
+  add_foreign_key "line_profiles", "users"
 end
