@@ -8,7 +8,8 @@ Rails.application.routes.draw do
   # LINE 綁定
   resource :binding, only: [ :show, :create, :destroy ]
 
-  # OmniAuth LINE Login callback
+  # OmniAuth LINE Login
+  post "/auth/line", to: "omniauth_callbacks#passthru"
   get "/auth/line/callback", to: "omniauth_callbacks#line"
   get "/auth/failure", to: "omniauth_callbacks#failure"
 

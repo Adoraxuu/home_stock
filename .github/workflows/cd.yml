@@ -84,8 +84,18 @@ jobs:
               -v home_stock_storage:/rails/storage \
               ghcr.io/adoraxuu/home_stock:latest
 
-            echo "Cleaning up old images..."
+            echo "Waiting for container to start..."
+            sleep 5
+
+            echo "Checking container health..."
+            docker logs home_stock 2>&1 | tail -10
+
+            echo "Cleaning up old images and containers..."
             docker image prune -af --filter "until=24h"
+            docker container prune -f
+
+            echo "Checking disk space..."
+            df -h | grep -E '(Filesystem|/$)'
 
             echo "Deployment completed!"
             docker ps | grep home_stock
