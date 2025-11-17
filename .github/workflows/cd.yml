@@ -51,17 +51,42 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Pre-pull Docker image on EC2
+      - name: Build and push Docker image
         run: |
-          echo "Pre-pulling image to avoid SSH timeout..."
-          COMMIT_SHA=$(git rev-parse HEAD)
-          ssh -o StrictHostKeyChecking=no ubuntu@56.155.101.64 \
-            "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin && \
-             (docker pull ghcr.io/adoraxuu/home_stock:${COMMIT_SHA} || docker pull ghcr.io/adoraxuu/home_stock:latest)"
+          docker buildx build \
+            --platform linux/amd64 \
+            --push \
+            --tag ghcr.io/adoraxuu/home_stock:latest \
+            --tag ghcr.io/adoraxuu/home_stock:${{ github.sha }} \
+            .
 
-      - name: Deploy with Kamal
-        env:
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to EC2
         run: |
-          kamal deploy
+          ssh -o StrictHostKeyChecking=no ubuntu@56.155.101.64 << 'ENDSSH'
+            set -e
+            echo "Logging in to GHCR..."
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "Pulling latest image..."
+            docker pull ghcr.io/adoraxuu/home_stock:latest || true
+
+            echo "Stopping old container..."
+            docker stop home_stock 2>/dev/null || true
+            docker rm home_stock 2>/dev/null || true
+
+            echo "Starting new container..."
+            docker run -d \
+              --name home_stock \
+              --restart unless-stopped \
+              -p 80:3000 \
+              -e RAILS_ENV=production \
+              -e RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }} \
+              -v home_stock_storage:/rails/storage \
+              ghcr.io/adoraxuu/home_stock:latest
+
+            echo "Cleaning up old images..."
+            docker image prune -af --filter "until=24h"
+
+            echo "Deployment completed!"
+            docker ps | grep home_stock
+          ENDSSH
