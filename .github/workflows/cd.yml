@@ -36,29 +36,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get GitHub Actions Runner IP
-        id: ip
-        run: echo "runner_ip=$(curl -s https://api.ipify.org)" >> $GITHUB_OUTPUT
-
-      - name: Whitelist GitHub Actions IP in EC2 Security Group
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          RUNNER_IP="${{ steps.ip.outputs.runner_ip }}/32"
-          SG_ID="${{ secrets.EC2_SECURITY_GROUP_ID }}"
-
-          echo "Adding temporary SSH access for runner IP: $RUNNER_IP"
-
-          # Add temporary SSH access (ignore if rule already exists)
-          aws ec2 authorize-security-group-ingress \
-            --group-id $SG_ID \
-            --protocol tcp \
-            --port 22 \
-            --cidr $RUNNER_IP \
-            --description "GitHub Actions temporary access" \
-            2>&1 | grep -v "already exists" || true
+      - name: Add GitHub Actions IP to AWS Security Group
+        uses: sohelamin/aws-security-group-add-ip-action@master
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          aws-security-group-id: ${{ secrets.EC2_SECURITY_GROUP_ID }}
+          port: '22'
+          description: 'GitHub Actions temporary SSH access'
 
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
@@ -71,23 +57,3 @@ jobs:
           KAMAL_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: |
           kamal deploy
-
-      - name: Remove GitHub Actions IP from Security Group
-        if: always()
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          RUNNER_IP="${{ steps.ip.outputs.runner_ip }}/32"
-          SG_ID="${{ secrets.EC2_SECURITY_GROUP_ID }}"
-
-          echo "Removing temporary SSH access for runner IP: $RUNNER_IP"
-
-          # Remove temporary SSH access (ignore if rule doesn't exist)
-          aws ec2 revoke-security-group-ingress \
-            --group-id $SG_ID \
-            --protocol tcp \
-            --port 22 \
-            --cidr $RUNNER_IP \
-            2>&1 | grep -v "does not exist" || true
