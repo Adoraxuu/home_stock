@@ -94,6 +94,9 @@ ssh:
   user: ubuntu
   keys:
     - ~/.ssh/home_stock_deploy_ed25519
+  # Increase timeout for large image pulls
+  options:
+    timeout: 3600  # 60 minutes for docker pull operations
 
 # Use accessory services (secrets come from .kamal/secrets).
 # accessories:
