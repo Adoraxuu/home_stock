@@ -109,9 +109,6 @@ Thumbs.db
 /config/secrets.yml
 /config/initializers/secret_token.rb
 
-# Ignore Kamal secrets
-/.kamal/secrets
-
 # Ignore SSL certificates
 *.pem
 *.key
