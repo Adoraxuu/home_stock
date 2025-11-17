@@ -51,6 +51,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+      - name: Pre-pull Docker image on EC2
+        run: |
+          echo "Pre-pulling image to avoid SSH timeout..."
+          ssh -i ~/.ssh/home_stock_deploy_ed25519 -o StrictHostKeyChecking=no ubuntu@56.155.101.64 \
+            "docker pull ghcr.io/adoraxuu/home_stock:$(git rev-parse HEAD) || docker pull ghcr.io/adoraxuu/home_stock:latest"
+
       - name: Deploy with Kamal
         env:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
