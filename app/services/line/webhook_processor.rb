@@ -72,11 +72,11 @@ module Line
 
       service = case command[:action]
       when :add
-        Inventory::AddItem.new(user: user, item_name: item_name, quantity: quantity)
+        Inventory::AddItem.new(user: user, item_name: item_name, quantity: quantity, source: "line_bot")
       when :remove
-        Inventory::RemoveItem.new(user: user, item_name: item_name, quantity: quantity)
+        Inventory::RemoveItem.new(user: user, item_name: item_name, quantity: quantity, source: "line_bot")
       when :set
-        Inventory::SetQuantity.new(user: user, item_name: item_name, quantity: quantity)
+        Inventory::SetQuantity.new(user: user, item_name: item_name, quantity: quantity, source: "line_bot")
       end
 
       if service.call

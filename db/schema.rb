@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_03_030604) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_18_015723) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_03_030604) do
     t.index ["user_id"], name: "index_line_profiles_on_user_id"
   end
 
+  create_table "stock_movements", force: :cascade do |t|
+    t.bigint "inventory_item_id", null: false
+    t.bigint "user_id", null: false
+    t.string "movement_type", null: false
+    t.decimal "quantity", precision: 10, scale: 2, null: false
+    t.decimal "previous_quantity", precision: 10, scale: 2, null: false
+    t.decimal "new_quantity", precision: 10, scale: 2, null: false
+    t.text "notes"
+    t.string "source"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_stock_movements_on_created_at"
+    t.index ["inventory_item_id"], name: "index_stock_movements_on_inventory_item_id"
+    t.index ["movement_type"], name: "index_stock_movements_on_movement_type"
+    t.index ["source"], name: "index_stock_movements_on_source"
+    t.index ["user_id"], name: "index_stock_movements_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -78,4 +96,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_03_030604) do
   add_foreign_key "family_members", "users"
   add_foreign_key "inventory_items", "families"
   add_foreign_key "line_profiles", "users"
+  add_foreign_key "stock_movements", "inventory_items"
+  add_foreign_key "stock_movements", "users"
 end

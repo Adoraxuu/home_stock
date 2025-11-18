@@ -2,10 +2,11 @@ module Inventory
   class AddItem
     attr_reader :error
 
-    def initialize(user:, item_name:, quantity:)
+    def initialize(user:, item_name:, quantity:, source: "web")
       @user = user
       @item_name = item_name
       @quantity = quantity.to_i
+      @source = source
       @error = nil
     end
 
@@ -28,38 +29,61 @@ module Inventory
       sanitized_name = ActiveRecord::Base.sanitize_sql_like(@item_name)
       existing_item = family.inventory_items.find_by("name LIKE ?", "%#{sanitized_name}%")
 
-      if existing_item
-        # 增加現有項目的數量
-        old_quantity = existing_item.quantity
-        new_quantity = old_quantity + @quantity
-        if existing_item.update(quantity: new_quantity)
-          @success_message = "✅ 已增加「#{existing_item.name}」\n\n原數量: #{old_quantity}\n增加: +#{@quantity}\n新數量: #{new_quantity}"
-          true
-        else
-          @error = "更新失敗: #{existing_item.errors.full_messages.join(', ')}"
-          false
-        end
-      else
-        # 建立新項目 (預設分類和品牌)
-        item = family.inventory_items.create(
-          name: @item_name,
-          quantity: @quantity,
-          brand: "未分類",
-          category: "其他"
-        )
+      ActiveRecord::Base.transaction do
+        if existing_item
+          # 增加現有項目的數量
+          old_quantity = existing_item.quantity
+          new_quantity = old_quantity + @quantity
 
-        if item.persisted?
-          @success_message = "✅ 已新增「#{@item_name}」\n\n數量: #{@quantity}\n\n💡 可以到網頁版設定品牌和分類"
-          true
+          if existing_item.update(quantity: new_quantity)
+            # 記錄 stock movement
+            create_movement(existing_item, old_quantity, new_quantity)
+
+            @success_message = "✅ 已增加「#{existing_item.name}」\n\n原數量: #{old_quantity}\n增加: +#{@quantity}\n新數量: #{new_quantity}"
+            true
+          else
+            @error = "更新失敗: #{existing_item.errors.full_messages.join(', ')}"
+            raise ActiveRecord::Rollback
+          end
         else
-          @error = "新增失敗: #{item.errors.full_messages.join(', ')}"
-          false
+          # 建立新項目 (預設分類和品牌)
+          item = family.inventory_items.create(
+            name: @item_name,
+            quantity: @quantity,
+            brand: "未分類",
+            category: "其他"
+          )
+
+          if item.persisted?
+            # 記錄 stock movement (新增項目,previous_quantity = 0)
+            create_movement(item, 0, @quantity)
+
+            @success_message = "✅ 已新增「#{@item_name}」\n\n數量: #{@quantity}\n\n💡 可以到網頁版設定品牌和分類"
+            true
+          else
+            @error = "新增失敗: #{item.errors.full_messages.join(', ')}"
+            raise ActiveRecord::Rollback
+          end
         end
       end
     end
 
     def success_message
       @success_message
+    end
+
+    private
+
+    def create_movement(item, old_quantity, new_quantity)
+      StockMovement.create!(
+        inventory_item: item,
+        user: @user,
+        movement_type: "add",
+        quantity: @quantity,
+        previous_quantity: old_quantity,
+        new_quantity: new_quantity,
+        source: @source
+      )
     end
   end
 end

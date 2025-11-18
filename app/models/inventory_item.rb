@@ -1,6 +1,7 @@
 class InventoryItem < ApplicationRecord
   # 關聯
   belongs_to :family
+  has_many :stock_movements, dependent: :destroy
 
   # 驗證
   validates :name, presence: true

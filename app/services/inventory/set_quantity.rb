@@ -2,10 +2,11 @@ module Inventory
   class SetQuantity
     attr_reader :error
 
-    def initialize(user:, item_name:, quantity:)
+    def initialize(user:, item_name:, quantity:, source: "web")
       @user = user
       @item_name = item_name
       @quantity = quantity.to_i
+      @source = source
       @error = nil
     end
 
@@ -33,20 +34,42 @@ module Inventory
         return false
       end
 
-      # 更新數量
+      # 更新數量並記錄 movement
       old_quantity = item.quantity
-      if item.update(quantity: @quantity)
-        warning = @quantity <= 5 ? "\n\n⚠️ 庫存偏低,記得補貨!" : ""
-        @success_message = "✅ 已設定「#{item.name}」的數量\n\n原數量: #{old_quantity}\n新數量: #{@quantity}#{warning}"
-        true
-      else
-        @error = "設定失敗: #{item.errors.full_messages.join(', ')}"
-        false
+
+      ActiveRecord::Base.transaction do
+        if item.update(quantity: @quantity)
+          create_movement(item, old_quantity, @quantity)
+
+          warning = @quantity <= 5 ? "\n\n⚠️ 庫存偏低,記得補貨!" : ""
+          @success_message = "✅ 已設定「#{item.name}」的數量\n\n原數量: #{old_quantity}\n新數量: #{@quantity}#{warning}"
+          true
+        else
+          @error = "設定失敗: #{item.errors.full_messages.join(', ')}"
+          raise ActiveRecord::Rollback
+        end
       end
     end
 
     def success_message
       @success_message
+    end
+
+    private
+
+    def create_movement(item, old_quantity, new_quantity)
+      # 計算實際變動量
+      change = new_quantity - old_quantity
+
+      StockMovement.create!(
+        inventory_item: item,
+        user: @user,
+        movement_type: "set",
+        quantity: change,  # 記錄變動量
+        previous_quantity: old_quantity,
+        new_quantity: new_quantity,
+        source: @source
+      )
     end
   end
 end
