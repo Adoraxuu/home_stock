@@ -1,34 +1,34 @@
 <div class="max-w-6xl mx-auto">
   <div class="flex justify-between items-center mb-8">
-    <h1 class="text-4xl font-bold text-gray-900">我的家庭</h1>
-    <%= link_to "建立新家庭", new_family_path, class: "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg" %>
+    <h1 class="text-4xl font-bold text-[var(--color-neutral)]">我的家庭</h1>
+    <%= link_to "建立新家庭", new_family_path, class: "bg-[var(--color-primary)] hover:bg-[var(--color-primary-500)] text-white font-bold py-2 px-6 rounded-lg transition" %>
   </div>
 
   <% if @families.any? %>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <% @families.each do |family| %>
-        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
-          <h2 class="text-2xl font-bold text-gray-800 mb-2"><%= family.name %></h2>
-          <p class="text-gray-600 mb-4">
+        <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition border border-[var(--color-neutral-50)]">
+          <h2 class="text-2xl font-bold text-[var(--color-neutral)] mb-2"><%= family.name %></h2>
+          <p class="text-[var(--color-neutral-300)] mb-4">
             <% if family.owner?(current_user) %>
-              <span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">擁有者</span>
+              <span class="inline-block bg-[var(--color-primary-100)] text-[var(--color-primary-600)] px-2 py-1 rounded text-sm font-semibold">擁有者</span>
             <% else %>
-              <span class="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">成員</span>
+              <span class="inline-block bg-[var(--color-sage-100)] text-[var(--color-sage-600)] px-2 py-1 rounded text-sm font-semibold">成員</span>
             <% end %>
           </p>
           <div class="flex space-x-2">
-            <%= link_to "檢視", family_path(family), class: "bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded" %>
+            <%= link_to "檢視", family_path(family), class: "bg-[var(--color-sage)] hover:bg-[var(--color-sage-600)] text-white px-4 py-2 rounded transition" %>
             <% if family.owner?(current_user) %>
-              <%= link_to "編輯", edit_family_path(family), class: "bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" %>
+              <%= link_to "編輯", edit_family_path(family), class: "bg-[var(--color-secondary)] hover:bg-[color-mix(in_oklab,var(--color-secondary),black_12%)] text-white px-4 py-2 rounded transition" %>
             <% end %>
           </div>
         </div>
       <% end %>
     </div>
   <% else %>
-    <div class="bg-white rounded-lg shadow-md p-12 text-center">
-      <p class="text-gray-600 text-lg mb-4">您還沒有加入任何家庭</p>
-      <%= link_to "建立第一個家庭", new_family_path, class: "inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg" %>
+    <div class="bg-white rounded-lg shadow-md p-12 text-center border border-[var(--color-neutral-50)]">
+      <p class="text-[var(--color-neutral-300)] text-lg mb-4">您還沒有加入任何家庭</p>
+      <%= link_to "建立第一個家庭", new_family_path, class: "inline-block bg-[var(--color-primary)] hover:bg-[var(--color-primary-500)] text-white font-bold py-3 px-6 rounded-lg transition" %>
     </div>
   <% end %>
 </div>

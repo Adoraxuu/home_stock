@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   # 首頁
   root "home#index"
 
+  # 會員管理中心
+  get "dashboard", to: "dashboard#index", as: :dashboard
+  get "dashboard/movements", to: "dashboard#movements", as: :dashboard_movements
+
   # LINE 綁定
   resource :binding, only: [ :show, :create, :destroy ]
 

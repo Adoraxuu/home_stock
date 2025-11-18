@@ -1,10 +1,46 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+@import "tailwindcss";
+
+@theme {
+  /* Primary - Light Bronze */
+  --color-primary: #cb997e;
+  --color-primary-50: #f5ebe5;
+  --color-primary-100: #ebd7cc;
+  --color-primary-200: #e0c3b2;
+  --color-primary-300: #d6ae99;
+  --color-primary-500: #b97550;
+  --color-primary-600: #8e5739;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary - Desert Sand */
+  --color-secondary: #ddbea9;
+  --color-secondary-50: #f8f2ed;
+  --color-secondary-100: #f1e4dc;
+  --color-secondary-200: #ead7ca;
+  --color-secondary-300: #e3cab9;
+  --color-secondary-foreground: #ffffff;
+
+  /* Accent - Powder Petal */
+  --color-accent: #ffe8d6;
+  --color-accent-100: #fff6ef;
+  --color-accent-600: #ff7e1b;
+  --color-accent-700: #bc5100;
+  --color-accent-foreground: #6b705c;
+
+  /* Neutral - Dusty Olive */
+  --color-neutral: #6b705c;
+  --color-neutral-50: #e2e3dd;
+  --color-neutral-100: #c5c8bc;
+  --color-neutral-200: #a8ac9a;
+  --color-neutral-300: #8b9178;
+  --color-neutral-600: #404337;
+  --color-neutral-foreground: #ffffff;
+
+  /* Sage - Dry Sage */
+  --color-sage: #a5a58d;
+  --color-sage-50: #edede8;
+  --color-sage-100: #dbdbd1;
+  --color-sage-200: #c9c9ba;
+  --color-sage-300: #b7b7a4;
+  --color-sage-600: #676751;
+  --color-sage-foreground: #ffffff;
+}

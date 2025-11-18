@@ -1,0 +1,99 @@
+<div class="max-w-7xl mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-8 text-[var(--color-neutral)]">會員管理中心</h1>
+
+  <!-- 統計卡片 -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- LINE 綁定狀態 -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-[var(--color-neutral-50)]">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-[var(--color-neutral)]">LINE 帳號</h3>
+        <% if @line_profile&.bound? %>
+          <span class="px-3 py-1 text-sm rounded-full bg-[var(--color-sage)] text-white">已綁定</span>
+        <% else %>
+          <span class="px-3 py-1 text-sm rounded-full bg-[var(--color-sage-50)] text-[var(--color-neutral)]">未綁定</span>
+        <% end %>
+      </div>
+      <% if @line_profile&.bound? %>
+        <p class="mb-4 text-[var(--color-neutral)]"><%= @line_profile.display_name %></p>
+      <% else %>
+        <p class="mb-4 text-[var(--color-neutral-300)]">綁定後可使用 LINE Bot 管理庫存</p>
+      <% end %>
+      <%= link_to "管理綁定", binding_path, class: "inline-block px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-500)] transition" %>
+    </div>
+
+    <!-- 庫存項目數 -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-[var(--color-neutral-50)]">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-[var(--color-neutral)]">庫存項目</h3>
+        <svg class="w-8 h-8 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+        </svg>
+      </div>
+      <p class="text-3xl font-bold mb-2 text-[var(--color-neutral)]"><%= @total_items %></p>
+      <% if @low_stock_items > 0 %>
+        <p class="text-sm text-[var(--color-accent-600)]">⚠️ <%= @low_stock_items %> 項庫存偏低</p>
+      <% else %>
+        <p class="text-sm text-[var(--color-neutral-300)]">庫存充足</p>
+      <% end %>
+    </div>
+
+    <!-- 今日操作 -->
+    <div class="bg-white rounded-lg shadow-md p-6 border border-[var(--color-neutral-50)]">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-[var(--color-neutral)]">今日操作</h3>
+        <svg class="w-8 h-8 text-[var(--color-sage)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+      </div>
+      <p class="text-3xl font-bold mb-2 text-[var(--color-neutral)]"><%= @movements_today %></p>
+      <p class="text-sm text-[var(--color-neutral-300)]">次庫存變動</p>
+    </div>
+  </div>
+
+  <!-- 最近的庫存變動 -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-8 border border-[var(--color-neutral-50)]">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-semibold text-[var(--color-neutral)]">最近的庫存變動</h2>
+      <%= link_to "查看全部", dashboard_movements_path, class: "font-medium text-[var(--color-primary)] hover:text-[color-mix(in_oklab,var(--color-primary),black_12%)] transition" %>
+    </div>
+
+    <% if @recent_movements.any? %>
+      <div class="space-y-3">
+        <% @recent_movements.each do |movement| %>
+          <div class="flex items-center justify-between py-3 border-b border-[var(--color-neutral-50)] last:border-0">
+            <div class="flex-1">
+              <p class="font-medium text-[var(--color-neutral)]"><%= movement.inventory_item.name %></p>
+              <p class="text-sm text-[var(--color-neutral-300)]">
+                <%= movement.description %>
+                <span class="text-[var(--color-sage-300)]">• <%= movement.user.name %></span>
+              </p>
+            </div>
+            <div class="text-right ml-4">
+              <p class="text-sm text-[var(--color-neutral-300)]"><%= time_ago_in_words(movement.created_at) %>前</p>
+              <span class="text-xs px-2 py-1 bg-[var(--color-neutral-50)] text-[var(--color-neutral)] rounded">
+                <%= movement.source == "line_bot" ? "LINE Bot" : movement.source == "web" ? "網頁" : movement.source %>
+              </span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-center py-8 text-[var(--color-neutral-300)]">還沒有任何庫存變動記錄</p>
+    <% end %>
+  </div>
+
+  <!-- 快速連結 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] rounded-lg shadow-md p-6 text-white">
+      <h3 class="text-xl font-semibold mb-2">管理家庭</h3>
+      <p class="mb-4 opacity-90">檢視和管理您的家庭成員與庫存</p>
+      <%= link_to "前往管理", families_path, class: "inline-block px-4 py-2 bg-white text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-neutral-50)] transition font-medium" %>
+    </div>
+
+    <div class="bg-gradient-to-br from-[var(--color-sage)] to-[var(--color-sage-300)] rounded-lg shadow-md p-6 text-white">
+      <h3 class="text-xl font-semibold mb-2">變動歷史</h3>
+      <p class="mb-4 opacity-90">查看完整的庫存變動記錄</p>
+      <%= link_to "查看歷史", dashboard_movements_path, class: "inline-block px-4 py-2 bg-white text-[var(--color-sage)] rounded-lg hover:bg-[var(--color-neutral-50)] transition font-medium" %>
+    </div>
+  </div>
+</div>

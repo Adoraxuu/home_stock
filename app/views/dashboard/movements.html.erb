@@ -1,0 +1,112 @@
+<div class="max-w-7xl mx-auto p-6">
+  <div class="mb-6">
+    <%= link_to dashboard_path, class: "inline-flex items-center text-[var(--color-primary)] hover:text-[color-mix(in_oklab,var(--color-primary),black_12%)] transition" do %>
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      返回管理中心
+    <% end %>
+  </div>
+
+  <h1 class="text-3xl font-bold mb-8 text-[var(--color-neutral)]">庫存變動歷史</h1>
+
+  <!-- 篩選器 -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6 border border-[var(--color-neutral-50)]">
+    <%= form_with url: dashboard_movements_path, method: :get, class: "grid grid-cols-1 md:grid-cols-4 gap-4" do |f| %>
+      <div>
+        <label class="block text-sm font-medium text-[var(--color-neutral)] mb-2">家庭</label>
+        <%= select_tag :family_id,
+            options_from_collection_for_select(@families, :id, :name, params[:family_id]),
+            include_blank: "全部家庭",
+            class: "w-full border border-[var(--color-secondary-200)] text-[var(--color-neutral)] rounded-lg px-4 py-2 focus:ring-2 focus:border-transparent" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--color-neutral)] mb-2">操作類型</label>
+        <%= select_tag :type,
+            options_for_select([
+              ["全部類型", ""],
+              ["新增", "add"],
+              ["減少", "remove"],
+              ["設定", "set"]
+            ], params[:type]),
+            class: "w-full border border-[var(--color-secondary-200)] text-[var(--color-neutral)] rounded-lg px-4 py-2 focus:ring-2 focus:border-transparent" %>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-[var(--color-neutral)] mb-2">來源</label>
+        <%= select_tag :source,
+            options_for_select([
+              ["全部來源", ""],
+              ["網頁", "web"],
+              ["LINE Bot", "line_bot"],
+              ["API", "api"]
+            ], params[:source]),
+            class: "w-full border border-[var(--color-secondary-200)] text-[var(--color-neutral)] rounded-lg px-4 py-2 focus:ring-2 focus:border-transparent" %>
+      </div>
+
+      <div class="flex items-end">
+        <%= button_tag type: "submit", class: "w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[color-mix(in_oklab,var(--color-primary),black_12%)] transition font-medium" do %>
+          套用篩選
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- 變動記錄列表 -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden border border-[var(--color-neutral-50)]">
+    <% if @movements.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-[var(--color-neutral-100)]">
+          <thead class="bg-[var(--color-neutral-50)]">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">時間</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">項目</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">操作</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">變動</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">操作者</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-[var(--color-neutral-300)] uppercase tracking-wider">來源</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-[var(--color-neutral-100)]">
+            <% @movements.each do |movement| %>
+              <tr class="hover:bg-[var(--color-neutral-50)]">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-neutral-300)]">
+                  <%= l(movement.created_at, format: :short) %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-[var(--color-neutral)]"><%= movement.inventory_item.name %></div>
+                  <div class="text-sm text-[var(--color-neutral-300)]"><%= movement.inventory_item.brand %></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= movement_type_badge_class(movement.movement_type) %>">
+                    <%= movement_type_label(movement.movement_type) %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-neutral)]">
+                  <%= movement.previous_quantity %> → <%= movement.new_quantity %>
+                  <span class="<%= movement.quantity >= 0 ? 'text-[var(--color-sage)]' : 'text-[var(--color-accent-700)]' %>">
+                    (<%= movement.quantity >= 0 ? '+' : '' %><%= movement.quantity %>)
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-neutral-300)]">
+                  <%= movement.user.name %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-neutral-300)]">
+                  <%= movement.source == "line_bot" ? "LINE Bot" : movement.source == "web" ? "網頁" : movement.source %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-[var(--color-sage-200)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        <p class="mt-2 text-sm text-[var(--color-neutral-300)]">沒有符合條件的變動記錄</p>
+      </div>
+    <% end %>
+  </div>
+</div>
