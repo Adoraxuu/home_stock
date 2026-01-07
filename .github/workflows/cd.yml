@@ -62,14 +62,14 @@ jobs:
 
       - name: Copy docker-compose file to EC2
         run: |
-          scp -o StrictHostKeyChecking=no docker-compose.production.yml ubuntu@56.155.101.64:~/docker-compose.yml
+          scp -o StrictHostKeyChecking=no docker-compose.production.yml ubuntu@56.155.147.85:~/docker-compose.yml
 
       - name: Deploy to EC2
         env:
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@56.155.101.64 << ENDSSH
+          ssh -o StrictHostKeyChecking=no ubuntu@56.155.147.85 << ENDSSH
             set -e
             echo "Logging in to GHCR..."
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
