@@ -6,6 +6,23 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
+# Wait for PostgreSQL to be ready (when using Docker Compose)
+if [ -n "$DATABASE_URL" ]; then
+  echo "Waiting for PostgreSQL..."
+  max_attempts=30
+  attempt=0
+  until pg_isready -d "$DATABASE_URL" > /dev/null 2>&1; do
+    attempt=$((attempt + 1))
+    if [ $attempt -ge $max_attempts ]; then
+      echo "PostgreSQL not available after $max_attempts attempts, exiting"
+      exit 1
+    fi
+    echo "PostgreSQL not ready (attempt $attempt/$max_attempts), waiting..."
+    sleep 2
+  done
+  echo "PostgreSQL is ready!"
+fi
+
 # If running the rails server then create or migrate existing database
 # Check if any argument contains "rails" and "server"
 if echo "$@" | grep -q "rails.*server"; then

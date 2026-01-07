@@ -60,43 +60,50 @@ jobs:
             --tag ghcr.io/adoraxuu/home_stock:${{ github.sha }} \
             .
 
-      - name: Deploy to EC2
+      - name: Copy docker-compose file to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@56.155.101.64 << 'ENDSSH'
+          scp -o StrictHostKeyChecking=no docker-compose.production.yml ubuntu@56.155.101.64:~/docker-compose.yml
+
+      - name: Deploy to EC2
+        env:
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@56.155.101.64 << ENDSSH
             set -e
             echo "Logging in to GHCR..."
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+            echo "Setting up environment variables..."
+            cat > ~/.env.home_stock << EOF
+          RAILS_MASTER_KEY=${RAILS_MASTER_KEY}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          EOF
+
             echo "Pulling latest image..."
             docker pull ghcr.io/adoraxuu/home_stock:latest || true
 
-            echo "Stopping old container..."
+            echo "Stopping old containers..."
+            docker compose -f ~/docker-compose.yml --env-file ~/.env.home_stock down 2>/dev/null || true
+            # Also stop legacy single container if exists
             docker stop home_stock 2>/dev/null || true
             docker rm home_stock 2>/dev/null || true
 
-            echo "Starting new container..."
-            docker run -d \
-              --name home_stock \
-              --restart unless-stopped \
-              -p 80:3000 \
-              -e RAILS_ENV=production \
-              -e RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }} \
-              -v home_stock_storage:/rails/storage \
-              ghcr.io/adoraxuu/home_stock:latest
+            echo "Starting services with docker compose..."
+            docker compose -f ~/docker-compose.yml --env-file ~/.env.home_stock up -d
 
-            echo "Waiting for container to start..."
-            sleep 5
+            echo "Waiting for services to start..."
+            sleep 10
 
             echo "Checking container health..."
-            docker logs home_stock 2>&1 | tail -10
+            docker compose -f ~/docker-compose.yml logs --tail=20
 
-            echo "Cleaning up old images and containers..."
+            echo "Cleaning up old images..."
             docker image prune -af --filter "until=24h"
-            docker container prune -f
 
             echo "Checking disk space..."
             df -h | grep -E '(Filesystem|/$)'
 
             echo "Deployment completed!"
-            docker ps | grep home_stock
+            docker compose -f ~/docker-compose.yml ps
           ENDSSH

@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: home_stock_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: home_stock
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: home_stock_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U home_stock -d home_stock_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: ghcr.io/adoraxuu/home_stock:latest
+    container_name: home_stock
+    restart: unless-stopped
+    ports:
+      - "80:3000"
+    environment:
+      RAILS_ENV: production
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      DATABASE_URL: postgres://home_stock:${POSTGRES_PASSWORD}@db:5432/home_stock_production
+    volumes:
+      - app_storage:/rails/storage
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  app_storage:
