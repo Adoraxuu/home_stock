@@ -161,3 +161,7 @@ dump.rdb
 /config/credentials/production.key
 
 CLAUDE.md
+
+# Cloudflare Worker (deployed separately)
+/cloudflare/
+/aws/

@@ -17,6 +17,47 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Start EC2 instance if stopped
+        run: |
+          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
+          echo "Checking EC2 instance state..."
+
+          STATE=$(aws ec2 describe-instances \
+            --instance-ids "$INSTANCE_ID" \
+            --query 'Reservations[0].Instances[0].State.Name' \
+            --output text)
+
+          echo "Current state: $STATE"
+
+          if [ "$STATE" = "stopped" ]; then
+            echo "Starting EC2 instance..."
+            aws ec2 start-instances --instance-ids "$INSTANCE_ID"
+
+            echo "Waiting for instance to be running..."
+            aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
+            echo "Instance is now running!"
+
+            # 額外等待讓 SSH 服務啟動
+            echo "Waiting for SSH to be ready..."
+            sleep 30
+          elif [ "$STATE" = "pending" ]; then
+            echo "Instance is starting, waiting..."
+            aws ec2 wait instance-running --instance-ids "$INSTANCE_ID"
+            sleep 30
+          elif [ "$STATE" = "running" ]; then
+            echo "Instance is already running"
+          else
+            echo "Unexpected state: $STATE"
+            exit 1
+          fi
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
