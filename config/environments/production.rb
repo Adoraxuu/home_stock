@@ -91,4 +91,7 @@ Rails.application.configure do
   # Allow hosts from credentials
   allowed_host = Rails.application.credentials.dig(:host)
   config.hosts << allowed_host if allowed_host.present?
+
+  # Allow origin subdomain for Cloudflare Worker proxy
+  config.hosts << "origin.kurakura.cc"
 end
